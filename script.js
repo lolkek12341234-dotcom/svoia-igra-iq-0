@@ -912,10 +912,11 @@ async function loadGameData(mode) {
         if (qRes.error) throw qRes.error;
         let questionsData = qRes.data || [];
 
-        // --- Если база пустая — заливаем стартовые вопросы из кода ---
-        if (allCategories.length === 0 && questionsData.length === 0) {
+        // --- Если вопросов нет — заливаем стартовые из кода ---
+        // (категории заливаем, только если их тоже ещё нет)
+        if (questionsData.length === 0) {
             isSeeding = true;
-            await seedInitialData(mode);
+            await seedInitialData(mode, allCategories.length === 0);
             // Перечитываем после сидирования
             catsRes = await withTimeout(
                 db.from("categories").select("*").eq("mode", mode).order("id")
@@ -988,19 +989,22 @@ async function loadGameData(mode) {
     }
 }
 
-// Заливает стартовые вопросы и категории режима в пустую базу
-async function seedInitialData(mode) {
+// Заливает стартовые вопросы (и категории, если withCategories) режима в базу
+async function seedInitialData(mode, withCategories) {
     const base = GAME_SETS[mode].questions;
-    const catNames = [];
-    base.forEach(function (q) {
-        if (!catNames.includes(q.category)) catNames.push(q.category);
-    });
 
-    // Категории
-    for (const name of catNames) {
-        await withTimeout(
-            db.from("categories").insert({ mode: mode, name: name, active: true })
-        );
+    // Категории — только если их ещё нет
+    if (withCategories) {
+        const catNames = [];
+        base.forEach(function (q) {
+            if (!catNames.includes(q.category)) catNames.push(q.category);
+        });
+        for (const name of catNames) {
+            const catRes = await withTimeout(
+                db.from("categories").insert({ mode: mode, name: name, active: true })
+            );
+            if (catRes.error) console.error("Категория не залилась:", name, catRes.error);
+        }
     }
 
     // Вопросы
@@ -1015,7 +1019,8 @@ async function seedInitialData(mode) {
             archived: false
         };
     });
-    await withTimeout(db.from("questions").insert(rows));
+    const qInsertRes = await withTimeout(db.from("questions").insert(rows));
+    if (qInsertRes.error) console.error("Вопросы не залились:", qInsertRes.error);
 }
 
 
@@ -3298,7 +3303,7 @@ if (settingsResetButton) {
         } catch (e) { console.error("Ошибка сброса:", e); }
 
         // Заливаем стартовые заново
-        await seedInitialData(currentGameMode);
+        await seedInitialData(currentGameMode, true);
 
         // Перезагружаем
         await loadGameData(currentGameMode);

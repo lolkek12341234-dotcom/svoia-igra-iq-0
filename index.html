@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROVER — Игра</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <button type="button" id="theme-toggle-btn" class="theme-toggle" title="Сменить тему">
+    🌙
+</button>
+
+<svg class="routes-bg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-50,150 Q200,80 400,250 T900,320 T1300,140" stroke="#ff3b30" stroke-width="2" stroke-dasharray="8 10" fill="none"/>
+    <path d="M-50,650 Q300,540 600,680 T1300,580" stroke="#ff3b30" stroke-width="2" stroke-dasharray="8 10" fill="none"/>
+    <path d="M250,-50 Q320,200 520,320 Q720,440 820,720 Q860,860 900,900" stroke="#ff3b30" stroke-width="2" stroke-dasharray="8 10" fill="none"/>
+    <path d="M1000,-50 Q960,150 1100,300 Q1200,420 1250,700" stroke="#ff3b30" stroke-width="2" stroke-dasharray="8 10" fill="none"/>
+    <circle cx="400" cy="250" r="6" fill="#ff3b30"/>
+    <circle cx="900" cy="320" r="6" fill="#ff3b30"/>
+    <circle cx="600" cy="680" r="6" fill="#ff3b30"/>
+    <circle cx="520" cy="320" r="6" fill="#ff3b30"/>
+    <circle cx="1100" cy="300" r="6" fill="#ff3b30"/>
+</svg>
+
+    <!-- ЭКРАН ВЫБОРА ИГРЫ -->
+    <section id="select-screen" class="select-screen">
+
+        <h1 class="game-logo">
+            <span class="logo-ya">Я</span>
+            <span class="logo-text">Своя игра</span>
+        </h1>
+
+        <p class="select-subtitle">Выберите игру:</p>
+
+        <div class="select-buttons">
+            <button type="button" class="game-select-btn" id="select-resolver-btn">
+                <span class="game-select-title">Resolver</span>
+                <span class="game-select-desc">Игра для резолверов</span>
+            </button>
+
+            <button type="button" class="game-select-btn game-select-btn--blue" id="select-outsource-btn">
+                <span class="game-select-title">Outsource-Resolver</span>
+                <span class="game-select-desc">Игра для аутсорс-резолверов</span>
+            </button>
+
+            <button type="button" class="game-select-btn game-select-btn--green" id="select-coordinator-btn">
+                <span class="game-select-title">Coordinator</span>
+                <span class="game-select-desc">В РАЗРАБОТКЕ!!!</span>
+            </button>
+
+            <button type="button" class="game-select-btn game-select-btn--purple" id="select-watcher-btn">
+                <span class="game-select-title">Watcher</span>
+                <span class="game-select-desc">В РАЗРАБОТКЕ!!!</span>
+            </button>
+        </div>
+
+    </section>
+
+    <!-- Стартовый экран -->
+<section id="start-screen" class="start-screen hidden">
+
+  <div class="start-layout">
+
+    <aside class="stats-card">
+        <h2 class="stats-title">Статистика</h2>
+
+        <div class="stat-item">
+            <span class="stat-label">Сыграно игр</span>
+            <span class="stat-value" id="games-played-count">0</span>
+        </div>
+
+        <button type="button" id="reset-games-count-btn" class="reset-leaderboard-btn">
+            Сбросить счётчик
+        </button>
+    </aside>
+
+    <div class="setup-card">
+
+       <h1 class="game-logo">
+    <span class="logo-ya">Я</span>
+    <span class="logo-text">Своя игра</span>
+</h1>
+
+        <h2 id="setup-title">Настройка игры</h2>
+
+        <button type="button" id="back-to-select-btn" class="back-button">
+            ← Назад к выбору игры
+        </button>
+
+        <p>Выберете количество игроков.</p>
+
+            <button id="new-game-btn" class="primary-button">
+                Новая игра
+            </button>
+
+            <form id="setup-form" class="hidden">
+
+                <label for="player-count">
+                   
+                </label>
+
+                <div class="players-setup">
+
+                 <label>Игроки</label>
+
+                <div id="player-fields"></div>
+
+                 <button type="button" id="add-player-btn" class="add-player-btn">
+                 + Добавить игрока
+               </button>
+               </div>
+
+                <button type="submit" class="primary-button">
+                    Начать игру
+                </button>
+
+                <button type="button" id="rules-btn" class="primary-button">
+                     Правила игры
+                </button>
+
+            </form>
+
+            <button type="button" id="settings-btn" class="primary-button settings-btn">
+                ⚙️ Настройки вопросов
+            </button>
+
+            <button type="button" id="game-settings-btn-start" class="primary-button settings-btn">
+                🎮 Настройки игры
+            </button>
+
+        </div>
+
+        <aside class="leaderboard-card">
+            <h2 class="leaderboard-title">🏆 Топ игроков</h2>
+            <ol id="leaderboard-list" class="leaderboard-list"></ol>
+            <button type="button" id="reset-leaderboard-btn" class="reset-leaderboard-btn">
+                Сбросить результаты
+            </button>
+        </aside>
+
+    </div>
+
+    </section>
+
+
+    <!-- Игровой экран -->
+    <section id="game-screen" class="game-screen hidden">
+
+    <h1 class="game-logo">
+    <span class="logo-ya">Я</span>
+    <span class="logo-text">Своя игра</span>
+</h1>
+
+    <div class="scores"></div>
+
+        <div id="board-wrap">
+            <div id="game-board"></div>
+        </div>
+
+        <button id="reset-btn" class="reset-button">
+            В меню
+        </button>
+
+    </section>
+
+
+   <!-- Окно вопроса -->
+<div id="question-modal" class="hidden">
+
+        <div class="modal-content">
+
+            <div class="timer" id="timer">60</div>
+
+                      <div class="rover-wrap">
+                <img
+                    src="rover-happy.svg"
+                    alt="Робот"
+                    class="rover rover-happy"
+                    id="rover-happy"
+                >
+                <img
+                    src="rover-sad.svg"
+                    alt="Робот грустит"
+                    class="rover rover-sad hidden"
+                    id="rover-sad"
+                >
+            </div>
+
+            <h2 id="question"></h2>
+
+            <div id="question-value" class="question-value"></div>
+
+        <div id="options"></div>
+
+        <p id="result"></p>
+
+        <div class="modal-actions">
+            <button id="wrong-btn">Ответ неправильный</button>
+            <button id="close-btn">Закрыть</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+    <!-- Окно победителя -->
+    <div id="winner-modal" class="hidden">
+
+        <div class="modal-content winner-content">
+
+            <h2 id="winner-title"></h2>
+
+            <p id="winner-players"></p>
+
+            <button id="export-csv-btn" class="primary-button export-btn">
+                📄 Скачать результат (CSV)
+            </button>
+
+            <button id="winner-menu-btn" class="primary-button">
+                В меню
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ЭКРАН НАСТРОЕК ВОПРОСОВ -->
+    <section id="settings-screen" class="settings-screen hidden">
+
+        <div class="settings-header">
+
+            <h1 class="game-logo">
+                <span class="logo-ya">Я</span>
+                <span class="logo-text">Своя игра</span>
+            </h1>
+
+            <h2 id="settings-title">Настройки вопросов</h2>
+
+            <div class="settings-header-actions">
+                <button type="button" id="settings-back-btn" class="back-button">
+                    ← Назад в меню
+                </button>
+                <button type="button" id="cat-manage-btn" class="primary-button">
+                    📂 Категории
+                </button>
+                <button type="button" id="settings-reset-btn" class="reset-leaderboard-btn">
+                    Сбросить к стандартным
+                </button>
+            </div>
+
+        </div>
+
+        <div class="settings-layout">
+
+            <aside class="settings-list-card" id="q-list-card">
+                <h2 class="stats-title">Вопросы</h2>
+                <p class="archive-hint">Сюда можно перетащить вопрос из архива.</p>
+                <div id="q-list" class="q-list"></div>
+            </aside>
+
+            <div class="settings-card">
+                <div id="q-editor" class="q-editor">
+                    <p class="q-editor-hint">Выберите вопрос слева или добавьте новый.</p>
+                </div>
+            </div>
+
+            <aside class="settings-archive-card" id="archive-card">
+                <h2 class="stats-title">📦 Архив</h2>
+                <div class="settings-toolbar">
+                    <button type="button" id="q-add-btn" class="add-player-btn">+ Добавить вопрос</button>
+                </div>
+                <p class="archive-hint">Перетащите вопрос сюда — он станет неактивным и освободит клетку.</p>
+                <div id="archive-list" class="q-list archive-list"></div>
+            </aside>
+
+        </div>
+
+    </section>
+
+
+    <!-- МОДАЛКА УПРАВЛЕНИЯ КАТЕГОРИЯМИ -->
+    <div id="cat-modal" class="hidden">
+        <div class="modal-content cat-modal-content">
+            <h2>📂 Управление категориями</h2>
+            <p class="cat-hint">Максимум 5 активных категорий. При отключении или удалении категории её вопросы перемещаются в архив.</p>
+
+            <div class="cat-add-row">
+                <input type="text" id="cat-new-input" class="single-player-input" placeholder="Имя категории" maxlength="40">
+                <button type="button" id="cat-add-btn" class="add-player-btn">+ Добавить</button>
+            </div>
+
+            <div id="cat-list" class="cat-list"></div>
+
+            <button type="button" id="cat-close-btn" class="primary-button">
+                Готово
+            </button>
+        </div>
+    </div>
+
+
+    <!-- МОДАЛКА НАСТРОЕК ИГРЫ -->
+    <div id="game-settings-modal" class="hidden">
+        <div class="modal-content cat-modal-content">
+            <h2>🎮 Настройки игры</h2>
+
+            <div class="gs-option">
+                <label class="gs-label">
+                    <input type="checkbox" id="gs-sound" checked>
+                    🔊 Звуковые эффекты
+                </label>
+            </div>
+
+            <div class="gs-option">
+                <p class="gs-option-title">Переход хода:</p>
+                <label class="gs-label">
+                    <input type="radio" name="gs-turn-mode" id="gs-turn-until-wrong" value="until-wrong" checked>
+                    🎯 Игрок отвечает, пока не ошибётся — только тогда ход переходит
+                </label>
+                <label class="gs-label">
+                    <input type="radio" name="gs-turn-mode" id="gs-turn-rotate" value="rotate">
+                    🔄 Игроки ходят по очереди
+                </label>
+            </div>
+
+            <button type="button" id="gs-close-btn" class="primary-button">
+                Готово
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Окно правил -->
+    <div id="rules-modal" class="hidden">
+        <div class="modal-content rules-content">
+            <h2> Правила игры</h2>
+
+            <div class="rules-text">
+                <h3>Как играть</h3>
+                <ol>
+                    <li>Выберите количество игроков (2–8) и введите их имена.</li>
+                    <li>Игроки по очереди выбирают вопросы на поле: 5 категорий × 5 вопросов.</li>
+                    <li>Чем дороже вопрос — тем меньше времени даётся на ответ (от 60 до 20 секунд).</li>
+                    <li>Выберите один из вариантов ответа.</li>
+                </ol>
+
+                <h3>Начисление баллов</h3>
+                <p>Каждый вопрос стоит определённое количество баллов (от 100 до 500). Если игрок отвечает <b>неверно</b> — стоимость вопроса снижается для следующего игрока.</p>
+
+                <div class="example">
+                    <b>Пример: вопрос за 100 баллов, 4 варианта ответа</b>
+                    <ul>
+                        <li>1-й игрок отвечает неверно → 2-й играет за <b>60 баллов</b></li>
+                        <li>2-й отвечает неверно → 3-й играет за <b>40 баллов</b></li>
+                        <li>3-й отвечает неверно → 4-й играет за <b>25 баллов</b></li>
+                    </ul>
+                </div>
+
+                <h3>Бонусы</h3>
+                <ul>
+                    <li>🔥 3 правильных ответа подряд — бонус <b>+50 очков</b>.</li>
+                    <li>Если в вопросе несколько правильных ответов — баллы делятся между ними поровну.</li>
+                </ul>
+
+                <h3>Таймер</h3>
+                <ul>
+                    <li>Вопрос за 100 — 60 сек, за 200 — 50 сек, за 300 — 40 сек, за 400 — 30 сек, за 500 — 20 сек.</li>
+                    <li>Если время вышло — ход переходит следующему игроку.</li>
+                </ul>
+            </div>
+
+            <button type="button" id="rules-close-btn" class="primary-button">
+                Понятно
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

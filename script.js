@@ -8,10 +8,11 @@ const CLOUD_URL = "https://dparxledlopktcurmqkl.supabase.co";
 const CLOUD_KEY_PARTS = ["sb_publishable_qkl0Jg_U4H1_", "SRTueGivTg_gsXlp8GW"];
 const CLOUD_KEY = CLOUD_KEY_PARTS.join("");
 
-// Если библиотека не загрузилась — не роняем всю игру
-let supabase = null;
+// Если библиотека не загрузилась — не роняем всю игру.
+// Имя db — потому что глобальное имя supabase уже занято самой библиотекой.
+let db = null;
 if (window.supabase && window.supabase.createClient) {
-    supabase = window.supabase.createClient(CLOUD_URL, CLOUD_KEY);
+    db = window.supabase.createClient(CLOUD_URL, CLOUD_KEY);
 }
 
 // Запрос в облако не должен висеть вечно
@@ -892,21 +893,21 @@ function setGameMode(mode) {
 let isSeeding = false; // флаг: сейчас заливаем стартовые вопросы в базу
 
 async function loadGameData(mode) {
-    if (!supabase) {
+    if (!db) {
         console.error("Облачная библиотека не загрузилась (заблокирован CDN?)");
         return false;
     }
     try {
         // --- Категории ---
         let catsRes = await withTimeout(
-            supabase.from("categories").select("*").eq("mode", mode).order("id")
+            db.from("categories").select("*").eq("mode", mode).order("id")
         );
         if (catsRes.error) throw catsRes.error;
         allCategories = catsRes.data || [];
 
         // --- Вопросы ---
         let qRes = await withTimeout(
-            supabase.from("questions").select("*").eq("mode", mode).order("id")
+            db.from("questions").select("*").eq("mode", mode).order("id")
         );
         if (qRes.error) throw qRes.error;
         let questionsData = qRes.data || [];
@@ -917,11 +918,11 @@ async function loadGameData(mode) {
             await seedInitialData(mode);
             // Перечитываем после сидирования
             catsRes = await withTimeout(
-                supabase.from("categories").select("*").eq("mode", mode).order("id")
+                db.from("categories").select("*").eq("mode", mode).order("id")
             );
             allCategories = catsRes.data || [];
             qRes = await withTimeout(
-                supabase.from("questions").select("*").eq("mode", mode).order("id")
+                db.from("questions").select("*").eq("mode", mode).order("id")
             );
             questionsData = qRes.data || [];
             isSeeding = false;
@@ -966,7 +967,7 @@ async function loadGameData(mode) {
 
         // --- Топ игроков ---
         const lbRes = await withTimeout(
-            supabase.from("leaderboard")
+            db.from("leaderboard")
                 .select("*")
                 .eq("mode", mode)
                 .order("score", { ascending: false })
@@ -976,7 +977,7 @@ async function loadGameData(mode) {
 
         // --- Счётчик игр ---
         const gcRes = await withTimeout(
-            supabase.from("games_count").select("*").eq("mode", mode).maybeSingle()
+            db.from("games_count").select("*").eq("mode", mode).maybeSingle()
         );
         gamesCountData = gcRes.data ? gcRes.data.count : 0;
 
@@ -998,7 +999,7 @@ async function seedInitialData(mode) {
     // Категории
     for (const name of catNames) {
         await withTimeout(
-            supabase.from("categories").insert({ mode: mode, name: name, active: true })
+            db.from("categories").insert({ mode: mode, name: name, active: true })
         );
     }
 
@@ -1014,7 +1015,7 @@ async function seedInitialData(mode) {
             archived: false
         };
     });
-    await withTimeout(supabase.from("questions").insert(rows));
+    await withTimeout(db.from("questions").insert(rows));
 }
 
 
@@ -1091,7 +1092,7 @@ function getAllCategories() {
 async function updateCategoryInCloud(cat) {
     try {
         await withTimeout(
-            supabase.from("categories").update({ active: cat.active }).eq("id", cat.id)
+            db.from("categories").update({ active: cat.active }).eq("id", cat.id)
         );
     } catch (e) { console.error("Ошибка сохранения категории:", e); }
 }
@@ -1100,7 +1101,7 @@ async function updateCategoryInCloud(cat) {
 async function addCategoryToCloud(name, active) {
     try {
         const res = await withTimeout(
-            supabase.from("categories")
+            db.from("categories")
                 .insert({ mode: currentGameMode, name: name, active: active })
                 .select()
         );
@@ -1114,7 +1115,7 @@ async function addCategoryToCloud(name, active) {
 async function deleteCategoryFromCloud(catId) {
     try {
         await withTimeout(
-            supabase.from("categories").delete().eq("id", catId)
+            db.from("categories").delete().eq("id", catId)
         );
     } catch (e) { console.error("Ошибка удаления категории:", e); }
 }
@@ -1305,7 +1306,7 @@ function loadLeaderboard() {
 async function saveLeaderboardEntry(name, score) {
     try {
         await withTimeout(
-            supabase.from("leaderboard").insert({
+            db.from("leaderboard").insert({
                 mode: currentGameMode,
                 name: name,
                 score: score
@@ -1318,7 +1319,7 @@ async function saveLeaderboardEntry(name, score) {
 async function clearLeaderboardInCloud() {
     try {
         await withTimeout(
-            supabase.from("leaderboard").delete().eq("mode", currentGameMode)
+            db.from("leaderboard").delete().eq("mode", currentGameMode)
         );
         leaderboardData = [];
     } catch (e) { console.error("Ошибка очистки топа:", e); }
@@ -1373,7 +1374,7 @@ async function incrementGamesCount() {
     renderGamesCount();
     try {
         await withTimeout(
-            supabase.from("games_count")
+            db.from("games_count")
                 .upsert({ mode: currentGameMode, count: gamesCountData }, { onConflict: "mode" })
         );
     } catch (e) { console.error("Ошибка счётчика игр:", e); }
@@ -1385,7 +1386,7 @@ async function resetGamesCountInCloud() {
     renderGamesCount();
     try {
         await withTimeout(
-            supabase.from("games_count")
+            db.from("games_count")
                 .upsert({ mode: currentGameMode, count: 0 }, { onConflict: "mode" })
         );
     } catch (e) { console.error("Ошибка сброса счётчика:", e); }
@@ -2327,7 +2328,7 @@ if (backToSelectButton) {
 
         // Отписываемся от обновлений
         if (realtimeChannel) {
-            supabase.removeChannel(realtimeChannel);
+            db.removeChannel(realtimeChannel);
             realtimeChannel = null;
         }
 
@@ -2533,12 +2534,12 @@ async function saveQuestionToCloud(q, targetIndex) {
         if (q.id) {
             // Обновляем существующий
             await withTimeout(
-                supabase.from("questions").update(row).eq("id", q.id)
+                db.from("questions").update(row).eq("id", q.id)
             );
         } else {
             // Новый вопрос
             const res = await withTimeout(
-                supabase.from("questions").insert(row).select()
+                db.from("questions").insert(row).select()
             );
             if (res.data && res.data.length > 0) {
                 q.id = res.data[0].id;
@@ -2555,7 +2556,7 @@ async function deleteQuestionFromCloud(q) {
     if (!q.id) return;
     try {
         await withTimeout(
-            supabase.from("questions").delete().eq("id", q.id)
+            db.from("questions").delete().eq("id", q.id)
         );
     } catch (e) { console.error("Ошибка удаления вопроса:", e); }
 }
@@ -2565,7 +2566,7 @@ async function archiveQuestionInCloud(q) {
     if (!q.id) return;
     try {
         await withTimeout(
-            supabase.from("questions").update({ archived: true }).eq("id", q.id)
+            db.from("questions").update({ archived: true }).eq("id", q.id)
         );
     } catch (e) { console.error("Ошибка архивации:", e); }
 }
@@ -2575,7 +2576,7 @@ async function restoreQuestionInCloud(q) {
     if (!q.id) return;
     try {
         await withTimeout(
-            supabase.from("questions").update({ archived: false }).eq("id", q.id)
+            db.from("questions").update({ archived: false }).eq("id", q.id)
         );
     } catch (e) { console.error("Ошибка восстановления:", e); }
 }
@@ -3259,7 +3260,7 @@ if (qAddButton) {
         // Сохраняем в облако как архивный
         try {
             const res = await withTimeout(
-                supabase.from("questions").insert({
+                db.from("questions").insert({
                     mode: currentGameMode,
                     category: newQ.category,
                     question: newQ.question,
@@ -3292,8 +3293,8 @@ if (settingsResetButton) {
 
         // Удаляем все вопросы и категории режима из облака
         try {
-            await withTimeout(supabase.from("questions").delete().eq("mode", currentGameMode));
-            await withTimeout(supabase.from("categories").delete().eq("mode", currentGameMode));
+            await withTimeout(db.from("questions").delete().eq("mode", currentGameMode));
+            await withTimeout(db.from("categories").delete().eq("mode", currentGameMode));
         } catch (e) { console.error("Ошибка сброса:", e); }
 
         // Заливаем стартовые заново
@@ -3496,14 +3497,14 @@ if (catModal) {
 let realtimeChannel = null;
 
 function subscribeToChanges() {
-    if (!supabase) return;
+    if (!db) return;
 
     // Отписываемся от старого канала
     if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
+        db.removeChannel(realtimeChannel);
     }
 
-    realtimeChannel = supabase
+    realtimeChannel = db
         .channel("game-updates-" + currentGameMode)
         .on(
             "postgres_changes",

@@ -2524,8 +2524,9 @@ function getEffectiveQuestions() {
     return questions;
 }
 
-// Сохраняет вопрос в облако (вставка нового или обновление по id)
-async function saveQuestionToCloud(q, targetIndex) {
+// Сохраняет вопрос в облако (вставка нового или обновление по id).
+// archived=true — вопрос остаётся в архиве, иначе — на поле.
+async function saveQuestionToCloud(q, targetIndex, archived) {
     try {
         const row = {
             mode: currentGameMode,
@@ -2534,7 +2535,7 @@ async function saveQuestionToCloud(q, targetIndex) {
             answer: q.answer,
             options: q.options,
             points: q.points,
-            archived: false
+            archived: archived === true
         };
         if (q.id) {
             // Обновляем существующий
@@ -2895,13 +2896,13 @@ function renderEditor() {
             points: Number(pointsSelect.value)
         };
 
-        // Вопрос из архива — просто обновляем его на месте
+        // Вопрос из архива — просто обновляем его на месте (остаётся в архиве!)
         if (qEditSource === "archive") {
             const oldQ = archiveData[qEditIndex];
             // Переносим id, если был
             if (oldQ && oldQ.id) updated.id = oldQ.id;
             archiveData[qEditIndex] = updated;
-            await saveQuestionToCloud(updated);
+            await saveQuestionToCloud(updated, undefined, true);
             renderArchive();
             renderEditor();
 

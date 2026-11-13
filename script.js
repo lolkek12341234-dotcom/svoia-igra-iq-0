@@ -8,7 +8,11 @@ const CLOUD_URL = "https://dparxledlopktcurmqkl.supabase.co";
 const CLOUD_KEY_PARTS = ["sb_publishable_qkl0Jg_U4H1_", "SRTueGivTg_gsXlp8GW"];
 const CLOUD_KEY = CLOUD_KEY_PARTS.join("");
 
-const supabase = window.supabase.createClient(CLOUD_URL, CLOUD_KEY);
+// Если библиотека не загрузилась — не роняем всю игру
+let supabase = null;
+if (window.supabase && window.supabase.createClient) {
+    supabase = window.supabase.createClient(CLOUD_URL, CLOUD_KEY);
+}
 
 // Запрос в облако не должен висеть вечно
 function withTimeout(promise, ms) {
@@ -888,6 +892,10 @@ function setGameMode(mode) {
 let isSeeding = false; // флаг: сейчас заливаем стартовые вопросы в базу
 
 async function loadGameData(mode) {
+    if (!supabase) {
+        console.error("Облачная библиотека не загрузилась (заблокирован CDN?)");
+        return false;
+    }
     try {
         // --- Категории ---
         let catsRes = await withTimeout(
@@ -3488,6 +3496,8 @@ if (catModal) {
 let realtimeChannel = null;
 
 function subscribeToChanges() {
+    if (!supabase) return;
+
     // Отписываемся от старого канала
     if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);

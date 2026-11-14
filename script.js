@@ -2647,6 +2647,20 @@ function renderQuestionList() {
         btn.appendChild(meta);
         btn.appendChild(text);
 
+        // Кнопка «В архив» — только у заполненных вопросов
+        if (q) {
+            const archiveBtn = document.createElement("button");
+            archiveBtn.type = "button";
+            archiveBtn.className = "archive-restore-btn q-archive-btn";
+            archiveBtn.textContent = "📦 В архив";
+            archiveBtn.title = "Отправить вопрос в архив";
+            archiveBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                archiveQuestion(index);
+            });
+            btn.appendChild(archiveBtn);
+        }
+
         btn.addEventListener("click", function () {
             qEditSource = "board";
             qEditIndex = index;
@@ -3295,6 +3309,14 @@ if (qAddButton) {
 
 if (settingsResetButton) {
     settingsResetButton.addEventListener("click", async function () {
+        // Пароль на сброс — чтобы случайно не стереть общие вопросы
+        const RESET_PASSWORD_PARTS = ["svoia-igra", "2282"];
+        const entered = prompt("Для сброса к стандартным вопросам введите пароль:");
+        if (entered === null) return; // нажал «Отмена»
+        if (entered !== RESET_PASSWORD_PARTS.join("")) {
+            alert("Неверный пароль. Сброс отменён.");
+            return;
+        }
         if (!confirm("Сбросить все вопросы и категории этого режима к стандартным? Ваши правки будут удалены.")) return;
 
         // Удаляем все вопросы и категории режима из облака
